@@ -13,8 +13,8 @@
     .kwh-header{background:#5b5bff;color:#fff;text-align:center;padding:16px 20px}
     .kwh-header h2{margin:0;font-size:22px;line-height:1.3}
     .kwh-header p{margin:6px 0 0;font-size:14px}
-    .kwh-chart{position:relative;padding:20px;touch-action:pan-y}
-    .kwh-chart svg{width:100%;height:auto;display:block;touch-action:pan-y}
+    .kwh-chart{position:relative;padding:20px}
+    .kwh-chart svg{width:100%;height:auto;display:block}
     .kwh-point{cursor:pointer;transition:.2s}
     .kwh-point:hover{r:8;fill:#3730a3}
     .kwh-hit{fill:transparent;pointer-events:all;cursor:pointer}
@@ -23,22 +23,28 @@
     .kwh-stat{background:#f1f3ff;border-radius:12px;padding:12px;text-align:center}
     .kwh-stat strong{display:block;font-size:20px;color:#5b5bff}
     .kwh-stat span{font-size:13px;color:#4b5563}
+    .kwh-mobile-data{display:none}
     .kwh-note{font-size:13px;line-height:1.5;color:#374151;padding:0 18px 18px;margin:0}
     .kwh-source{font-size:12px;color:#6b7280;font-style:italic;text-align:right;padding:0 18px 16px;margin:0}
     @media(max-width:767px){
       .kwh-wrapper{padding:10px}
-      .kwh-header{padding:18px 16px}
-      .kwh-header h2{font-size:22px;line-height:1.25}
-      .kwh-header p{font-size:16px;line-height:1.25}
+      .kwh-header{padding:16px}
+      .kwh-header h2{font-size:20px;line-height:1.25}
+      .kwh-header p{font-size:14px;line-height:1.25}
       .kwh-chart{padding:14px 6px 8px}
-      .kwh-chart svg{width:100%;height:auto}
-      .kwh-summary{grid-template-columns:1fr;padding:0 18px 18px}
-      .kwh-stat{padding:16px 12px}
-      .kwh-stat strong{font-size:28px}
-      .kwh-stat span{font-size:16px}
-      .kwh-note{font-size:15px}
+      .kwh-hit{pointer-events:none}
+      .kwh-point{pointer-events:none}
+      .kwh-tooltip{display:none!important}
+      .kwh-summary{grid-template-columns:1fr;padding:0 18px 14px}
+      .kwh-stat{padding:14px 12px}
+      .kwh-stat strong{font-size:24px}
+      .kwh-stat span{font-size:15px}
+      .kwh-mobile-data{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 18px 18px}
+      .kwh-mobile-item{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px;text-align:center}
+      .kwh-mobile-item strong{display:block;color:#5b5bff;font-size:15px}
+      .kwh-mobile-item span{display:block;color:#374151;font-size:13px;margin-top:3px}
+      .kwh-note{font-size:14px}
       .kwh-source{font-size:12px}
-      .kwh-hit{r:24}
     }
   </style>
 </head>
@@ -53,7 +59,7 @@
       <div class="kwh-chart" id="kwhChartBox">
         <div class="kwh-tooltip" id="kwhTooltip"></div>
 
-        <svg viewBox="0 0 900 420" role="img" aria-label="Graphique interactif de l'évolution du prix du kWh d'électricité de 2019 à 2026">
+        <svg viewBox="0 0 900 420" role="img" aria-label="Graphique de l'évolution du prix du kWh d'électricité de 2019 à 2026">
           <line x1="70" y1="330" x2="850" y2="330" stroke="#d1d5db"/>
           <line x1="70" y1="60" x2="70" y2="330" stroke="#d1d5db"/>
 
@@ -125,6 +131,19 @@
         </div>
       </div>
 
+      <div class="kwh-mobile-data">
+        <div class="kwh-mobile-item"><strong>août 2019</strong><span>0,1524€</span></div>
+        <div class="kwh-mobile-item"><strong>févr. 2020</strong><span>0,1546€</span></div>
+        <div class="kwh-mobile-item"><strong>févr. 2021</strong><span>0,1582€</span></div>
+        <div class="kwh-mobile-item"><strong>févr. 2022</strong><span>0,1740€</span></div>
+        <div class="kwh-mobile-item"><strong>févr. 2023</strong><span>0,2062€</span></div>
+        <div class="kwh-mobile-item"><strong>août 2023</strong><span>0,2276€</span></div>
+        <div class="kwh-mobile-item"><strong>févr. 2024</strong><span>0,2516€</span></div>
+        <div class="kwh-mobile-item"><strong>févr. 2025</strong><span>0,2016€</span></div>
+        <div class="kwh-mobile-item"><strong>août 2025</strong><span>0,1952€</span></div>
+        <div class="kwh-mobile-item"><strong>avr. 2026</strong><span>0,1940€</span></div>
+      </div>
+
       <p class="kwh-note">
         Après un pic historique atteint en 2024 avec un prix du kWh à <strong>0,2516€</strong>, les tarifs de l’électricité ont reculé en 2025 puis se sont stabilisés début 2026 autour de <strong>0,1940€</strong>.
       </p>
@@ -140,12 +159,14 @@
     const tip=document.getElementById("kwhTooltip");
     const points=document.querySelectorAll(".kwh-hit");
 
-    let startX=0;
-    let startY=0;
+    function isMobile(){
+      return window.matchMedia("(max-width:767px)").matches;
+    }
 
     function positionTip(p,x,y){
-      const rect=box.getBoundingClientRect();
+      if(isMobile()) return;
 
+      const rect=box.getBoundingClientRect();
       tip.innerHTML="<strong>"+p.dataset.date+"</strong><br>Prix du kWh : "+p.dataset.price;
       tip.style.display="block";
       tip.style.left=Math.min(Math.max(x-rect.left+12,8),rect.width-145)+"px";
@@ -157,33 +178,10 @@
     }
 
     points.forEach(p=>{
-      p.addEventListener("pointerdown",e=>{
-        startX=e.clientX;
-        startY=e.clientY;
-      });
-
-      p.addEventListener("pointerup",e=>{
-        const moveX=Math.abs(e.clientX-startX);
-        const moveY=Math.abs(e.clientY-startY);
-
-        if(moveX<8&&moveY<8){
-          positionTip(p,e.clientX,e.clientY);
-        }
-      });
-
-      p.addEventListener("mouseenter",e=>{
-        if(!window.matchMedia("(max-width:767px)").matches){
-          positionTip(p,e.clientX,e.clientY);
-        }
-      });
-
-      p.addEventListener("mousemove",e=>{
-        if(!window.matchMedia("(max-width:767px)").matches){
-          positionTip(p,e.clientX,e.clientY);
-        }
-      });
-
+      p.addEventListener("mouseenter",e=>positionTip(p,e.clientX,e.clientY));
+      p.addEventListener("mousemove",e=>positionTip(p,e.clientX,e.clientY));
       p.addEventListener("mouseleave",hideTip);
+      p.addEventListener("click",e=>positionTip(p,e.clientX,e.clientY));
     });
   </script>
 </body>
