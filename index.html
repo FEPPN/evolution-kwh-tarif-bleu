@@ -168,6 +168,15 @@
       p.addEventListener("mouseleave",hideTip);
       p.addEventListener("click",e=>positionTip(p,e.clientX,e.clientY));
     });
+    function envoyerHauteurIframe() {
+        const hauteur = document.documentElement.scrollHeight + 15;
+        window.parent.postMessage({ type: 'resize-dpe-widget', height: hauteur }, '*');
+    }
+
+    const observerTaille = new ResizeObserver(() => {
+        envoyerHauteurIframe();
+    });
+    observerTaille.observe(document.body);
   </script>
 </body>
 </html>
